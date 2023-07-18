@@ -5,8 +5,8 @@ network.
 
 The repository is designed as a monorepo to contain the various tools in one place.
 
-These tools are licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode) and authored by
-[Adam Dean](@crypto2099) <adam@crypto2099.io>.
+These tools are licensed under [CC-BY-4.0](LICENSE) and authored by
+[Adam Dean](https://github.com/crypto2099).
 
 ## Packages
 
