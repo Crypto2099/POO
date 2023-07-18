@@ -4,7 +4,7 @@
   "description": "Cardano Proof of Onboarding Test Server",
   "main": "dist/server.ts",
   "author": "Adam Dean <adam@crypto2099.io>",
-  "license": "Apache-2.0",
+  "license": "CC-BY-4.0",
   "private": false,
   "scripts": {
     "start": "tsc && node dist/server.js"
