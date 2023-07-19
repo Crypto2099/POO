@@ -17,3 +17,7 @@ the intent of this tool is to allow wallet implementors to easily test their var
 proper behavior.
 
 A Postman Collection file is included to see example requests and responses.
+
+### [POO Library](packages/lib)
+
+Helper libraries and code examples to show you how to integrate POO into your wallet or platform.
