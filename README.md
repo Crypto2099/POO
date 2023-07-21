@@ -21,3 +21,8 @@ A Postman Collection file is included to see example requests and responses.
 ### [POO Library](packages/lib)
 
 Helper libraries and code examples to show you how to integrate POO into your wallet or platform.
+
+### [POO QR Code Generator](packages/qr-generator)
+
+The POO QR Code Generator is a simple node.js script to generate unique codes and the subsequent QR codes you may need
+to deploy POO in production. Instructions for use can be found within the directory.

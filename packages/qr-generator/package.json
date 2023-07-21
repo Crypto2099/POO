@@ -1,0 +1,15 @@
+{
+  "name": "poo-qr-generator",
+  "version": "1.0.0",
+  "description": "A QR Code Generator for Cardano Proof of Onboarding Protocol",
+  "main": "index.js",
+  "scripts": {
+    "generator": "node index.js"
+  },
+  "author": "Adam Dean <adam@crypto2099.io>",
+  "license": "CC-BY-4.0",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "qrcode": "^1.5.3"
+  }
+}
