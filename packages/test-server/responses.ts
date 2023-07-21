@@ -41,7 +41,7 @@ export const PooResponses: {[code: number|string]: pooResponse} = {
         status: 'accepted',
         lovelaces: '2000000',
         tokens: {
-            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.HOSKY": "1000000000"
+            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59": "1000000000"
         }
     },
     201: {
@@ -50,7 +50,7 @@ export const PooResponses: {[code: number|string]: pooResponse} = {
         lovelaces: '2000000',
         queue_position: 42,
         tokens: {
-            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.HOSKY": "1000000000"
+            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59": "1000000000"
         }
     },
     202: {
@@ -58,7 +58,7 @@ export const PooResponses: {[code: number|string]: pooResponse} = {
         status: 'claimed',
         lovelaces: '2000000',
         tokens: {
-            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.HOSKY": "1000000000"
+            "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59": "1000000000"
         },
         tx_hash: 'f67470d5e2d4aabb7019b367078333e66f89217f0cec228bc68af94f35d12ba9'
     },
