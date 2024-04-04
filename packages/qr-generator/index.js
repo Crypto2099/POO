@@ -1,9 +1,10 @@
-const { Command, InvalidArgumentError } = require('commander');
+const {Command, InvalidArgumentError} = require('commander');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const querystring = require('querystring');
 const qrcode = require('qrcode');
+const {Buffer} = require("buffer");
 const program = new Command();
 
 function intArg(value, prev) {
@@ -23,16 +24,21 @@ program
     .argument('[amount]', 'Number of codes you wish to generate', intArg, 10)
     .option('-u, --uuid', 'Generate UUID codes', false)
     .option('-b, --bytes <int>', 'Length of random bytes codes generated', intArg, 8)
+    .option('-l, --lovelace <int>', 'Number of Lovelace to attach to each code', intArg, 1000000)
+    .option('-t, --tokens "[policy_id].[asset_id][#?]|[quantity],[policy_id].[asset_id][#?]|[quantity]"', 'Provide details of a token that will be added to each code. Assets should be provided in hex-based format i.e. (698a6ea0ca99f315034072af31eaac6ec11fe8558d3f48e9775aab9d.7444524950) If a number symbol (#) is present at the end of the asset ID, a serial number will be added to the end of each asset. Add a pipe character (|) followed by the integer amount of the token to send.', null, false)
+    .option('-o, --offset <int>', "How much to offset token number generation by.")
     .description('Generate [amount] of random codes and save to a local text file')
     .action((amount, options) => {
         console.log(`Generating ${parseInt(amount)} codes!`);
+        let offset = options.offset || 0;
+        console.log(`Offset: ${offset}`);
         if (options.uuid) {
             console.log(`Using UUIDv4`);
         } else {
             console.log(`Using hex strings of ${options.bytes} random bytes.`)
         }
         console.log(`Codes will be written out to: ./codes.json`);
-        const codes = [];
+        const codes = {};
         for (let i = 0; i < parseInt(amount); i++) {
             let code;
             if (options.uuid) {
@@ -41,8 +47,29 @@ program
                 code = crypto.randomBytes(options.bytes).toString('hex');
             }
 
-            // console.log("Step:", i, code);
-            codes.push(code);
+            const code_contents = {
+                lovelaces: options.lovelace
+            };
+
+            if (options.tokens) {
+                const tokens = options.tokens.split(',');
+
+                if (tokens) {
+                    tokens.forEach((token) => {
+                        const [asset, quantity] = token.split('|');
+                        let [policy_id, asset_id] = asset.split('.');
+                        if (asset_id.slice(-1) === '#') {
+                            const serial = parseInt(i) + parseInt(offset) + 1;
+                            console.log(`Serial #${serial}`);
+                            asset_id = asset_id.substring(0, asset_id.length - 1) + serial.toString().padStart(amount.toString().length, '0');
+                            asset_id = Buffer.from(asset_id, "ascii").toString('hex');
+                        }
+                        code_contents[policy_id + "." + asset_id] = quantity;
+                    });
+                }
+            }
+
+            codes[code] = code_contents
         }
 
         fs.writeFileSync('./codes.json', JSON.stringify(codes));
@@ -54,6 +81,8 @@ program
     .argument('<faucet_url>', 'The faucet URL that will be embedded into the QR code')
     .argument('[code_source]', 'JSON file containing the codes to generate. The file format should be a JSON array with each code being a new entry in the array.', './codes.json')
     .option('-o, --output <path>', 'The output path to store generated QR Codes in', './qr')
+    .option('-f, --format <type>', "The output format", "svg")
+    .option('-u, --uri', 'Generate URIs only and write them to a file')
     .option('-e, --ecl <level>', 'Error-correction Level: L, M, Q, H', 'H')
     .option('-w, --width <int>', 'Size of the generated code', intArg, 512)
     .option('-d, --dark <rgba>', 'Hex RGBA color code for dark portions of the QR code', '#000000ff')
@@ -85,21 +114,28 @@ program
             throw new Error("Could not read the codes file! Are you sure it is valid JSON?");
         }
 
-        for (const code of codes) {
-            const uri = 'web+cardano://claim/v1?'+querystring.stringify({
+        const uris = [];
+
+        Object.keys(codes).forEach((code) => {
+            const uri = 'web+cardano://claim/v1?' + querystring.stringify({
                 faucet_url: faucet_url,
                 code: code
             });
 
-            qrcode.toFile(path.join(options.output, code+'.svg'), uri, {
+            uris.push(uri);
+
+            qrcode.toFile(path.join(options.output, code + '.' + options.format), uri, {
                 errorCorrectionLevel: options.ecl,
                 width: options.width,
+                margin: 0,
                 color: {
                     dark: options.dark,
                     light: options.light
                 }
             })
-        }
+        });
+
+        fs.writeFileSync(path.join(options.output, 'code_uris.json'), JSON.stringify(uris));
     })
 
 program.parse();
