@@ -9,7 +9,14 @@
   "author": "Adam Dean <adam@crypto2099.io>",
   "license": "CC-BY-4.0",
   "dependencies": {
+    "@loskir/styled-qr-code-node": "^1.5.1",
     "commander": "^11.0.0",
+    "qr-code-styling": "^1.6.0-rc.1",
+    "qr-code-styling-node": "^1.5.0",
     "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "axios": "^1.5.0",
+    "csv-parse": "^5.5.0"
   }
 }

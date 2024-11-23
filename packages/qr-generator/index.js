@@ -5,6 +5,7 @@ const path = require('path');
 const querystring = require('querystring');
 const qrcode = require('qrcode');
 const {Buffer} = require("buffer");
+const {QRCodeCanvas} = require('@loskir/styled-qr-code-node');
 const program = new Command();
 
 function intArg(value, prev) {
@@ -87,6 +88,7 @@ program
     .option('-w, --width <int>', 'Size of the generated code', intArg, 512)
     .option('-d, --dark <rgba>', 'Hex RGBA color code for dark portions of the QR code', '#000000ff')
     .option('-l, --light <rgba>', 'Hex RGBA color code for light portions of the QR code', '#ffffffff')
+    .option('-m, --margin <int>', 'Size of the margin to place around the image', intArg, 0)
     .description('Generate SVG QR codes from the provided JSON codes file')
     .action((faucet_url, code_source, options) => {
         console.log(faucet_url, querystring.escape(faucet_url));
@@ -127,7 +129,7 @@ program
             qrcode.toFile(path.join(options.output, code + '.' + options.format), uri, {
                 errorCorrectionLevel: options.ecl,
                 width: options.width,
-                margin: 0,
+                margin: options.margin,
                 color: {
                     dark: options.dark,
                     light: options.light
@@ -136,6 +138,101 @@ program
         });
 
         fs.writeFileSync(path.join(options.output, 'code_uris.json'), JSON.stringify(uris));
+    })
+
+program
+    .command('generate-claim-qr')
+    .argument('[code_source]', 'JSON file containing the codes to generate. The file format should be a JSON object with each code being the keys of the object.', './codes.json')
+    .option('-o, --output <path>', 'The output path to store the generated QR codes in', './claim_qr')
+    .option('-f, --format <type>', 'The output format (SVG|PNG)', 'svg')
+    .option('-u, --uri', 'Generate URIs only and write them to a file')
+    .option('-e, --ecl <level>', 'Error-correction Level: L, M, Q, H', 'H')
+    .option('-w, --width <int>', 'Size of the generated code', intArg, 512)
+    .option('-d, --dark <rgba>', 'Hex RGBA color code for dark portions of the QR code', '#000000ff')
+    .option('-l, --light <rgba>', 'Hex RGBA color code for light portions of the QR code', '#ffffffff')
+    .description('Generate QR codes for NMKR claim from the provided JSON codes file')
+    .action((code_source, options) => {
+        // console.log(faucet_url, querystring.escape(faucet_url));
+        console.log(code_source);
+        console.log(options);
+
+        // Create the output directory if it does not exist
+        if (!fs.existsSync(options.output)) {
+            console.log("Creating the output directory...");
+            fs.mkdirSync(options.output);
+        }
+
+        // Empty the output directory
+        const files = fs.readdirSync(options.output);
+        for (const file of files) {
+            fs.unlinkSync(path.join(options.output, file))
+        }
+
+        let codes;
+
+        try {
+            codes = JSON.parse(fs.readFileSync(code_source, 'utf8'));
+        } catch (e) {
+            console.error(e);
+            throw new Error("Could not read the codes file! Are you sure it is valid JSON?");
+        }
+
+        const uris = [];
+
+
+        const width = options.width;
+        const height = width;
+
+        const config = {
+            data: null, // This is the URL
+            // image: null, // This is a URI to the image to layer over the center
+            label: null, // This is a label shown beneath the QR
+            width: width,
+            height: height,
+            margin: 0,
+            type: "svg",
+            qrOptions: {
+                typeNumber: 0, mode: "Byte", errorCorrectionLevel: options.ecl
+            },
+            dotsOptions: {
+                type: "rounded", // type: "extra-rounded",
+                color: options.dark,
+                // gradient: {
+                //     "type": "linear",
+                //     "rotation": -0.7853981633974483,
+                //     "colorStops": [{"offset": 0, "color": "#fdf64b"}, {"offset": 1, "color": "#02c9ee"}]
+                // }
+            },
+            cornersDotOptions: {
+                type: "dot",
+                color: options.dark,
+            },
+            cornersSquareOptions: {
+                type: "rounded",
+                color: options.dark,
+            },
+            backgroundOptions: {
+                color: options.light
+            },
+            imageOptions: {
+                margin: 10, crossOrigin: 'anonymous', saveAsBlob: true
+            }
+        };
+
+        Object.keys(codes).forEach((code) => {
+            // https://nmkr.io/claim?coupon=
+            const uri = 'https://nmkr.io/claim?' + querystring.stringify({
+                coupon: code
+            });
+
+            uris.push(uri);
+
+            config.data = uri;
+
+            const qr_code = new QRCodeCanvas(config);
+            qr_code.toFile(path.join(options.output, code + '.' + options.format), options.format);
+            config.data = null;
+        });
     })
 
 program.parse();
